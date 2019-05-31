@@ -4,6 +4,9 @@
 
 This is the Grid Board you can freely move focus by keyboard input.
 
+## Install
+Clone this repo to local, then `yarn` and `yarn start`
+
 ## Keyborad Shortcut
 
 - Enter - Click
