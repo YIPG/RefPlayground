@@ -1,12 +1,12 @@
 import React, { useState, useEffect, createRef } from "react"
-import { relative } from "upath"
 
 const Item = props => {
   const { top, left } = props
   const [click, setClick] = useState(false)
 
+  let itemRef = createRef()
+
   useEffect(() => {
-    let itemRef = createRef()
     props.focus && itemRef.current.focus()
   }, [props.focus])
 
@@ -25,11 +25,15 @@ const Item = props => {
   }
 
   const handleKeyDown = target => {
-    if (target.key === "Enter") setClick(!click)
+    const { key } = target
+    key === "Enter" && setClick(!click)
+    key === "ArrowRight" && props.rightArrowClick()
+    key === "ArrowLeft" && props.leftArrowClick()
   }
 
   return (
     <div
+      ref={itemRef}
       style={click ? clickedStyle : style}
       tabIndex={0}
       onClick={() => setClick(!click)}
@@ -38,39 +42,60 @@ const Item = props => {
   )
 }
 
-const Grid = () => {
-  const [focusList, setFocusList] = useState(Array(25).fill(false))
-
-  const onHandleFocusList = i => {
-    setFocusList([...focusList.slice(0, i), true, focusList.slice(i + 1)])
+class Grid extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      focusIndex: 0
+    }
   }
 
-  const length = 50
+  rightArrowClick() {
+    this.state.focusIndex < 25 &&
+      this.setState({
+        focusIndex: this.state.focusIndex + 1
+      })
+  }
 
-  const pointList = [...Array(5)]
-    .map((_, i) => [...Array(5)].map((_, j) => [i * length, j * length]))
-    .flat()
-  // 5×5のグリッドを作成
-  // [[0,0],[0,40]...[40,0],[40,40]...[160,160]]
+  leftArrowClick() {
+    this.state.focusIndex > 0 &&
+      this.setState({
+        focusIndex: this.state.focusIndex - 1
+      })
+  }
 
-  return (
-    <div
-      style={{
-        margin: "3rem 20rem"
-      }}
-    >
-      <div style={{ position: "relative" }}>
-        {pointList.map((topLeft, index) => (
-          <Item
-            focus={focusList[index]}
-            key={String(topLeft[0]) + String(topLeft[1])}
-            top={topLeft[0]}
-            left={topLeft[1]}
-          />
-        ))}
+  render() {
+    const length = 50
+
+    // 5×5のグリッドを作成
+    // [[0,0],[0,40]...[40,0],[40,40]...[160,160]]
+    const pointList = [...Array(5)]
+      .map((_, i) => [...Array(5)].map((_, j) => [i * length, j * length]))
+      .flat()
+
+    return (
+      <div
+        style={{
+          display: "flex",
+          margin: "3rem 20rem",
+          flexDirection: "column"
+        }}
+      >
+        <div style={{ position: "relative" }}>
+          {pointList.map((topLeft, index) => (
+            <Item
+              rightArrowClick={this.rightArrowClick.bind(this)}
+              leftArrowClick={this.leftArrowClick.bind(this)}
+              focus={index === this.state.focusIndex}
+              key={String(topLeft[0]) + String(topLeft[1])}
+              top={topLeft[0]}
+              left={topLeft[1]}
+            />
+          ))}
+        </div>
       </div>
-    </div>
-  )
+    )
+  }
 }
 
 export default Grid
